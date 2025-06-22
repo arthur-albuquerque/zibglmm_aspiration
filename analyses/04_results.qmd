@@ -135,7 +135,9 @@ control_risk =
                        round(.lower*100,1), ", ",
                        round(.upper*100,1), "%]"))
 
-prob = paste0("Pr(RD > 0) = ",mean(draws$RD > 0) |> round(2) * 100, "%")
+prob = paste0("Pr(RD > 0%) = ",mean(draws$RD > 0) |> round(2) * 100, "%")
+prob1 = paste0("Pr(RD > 1%) = ",mean(draws$RD > 0.01) |> round(2) * 100, "%")
+
 
 
 caption = paste0("Estimated Risk in Control Group:\n ", control_risk$text)
@@ -152,7 +154,7 @@ tibble(
   labs(x = "Marginal Absolute Risk Difference (%)",
        y = " ",
        title = "Overall Treatment Effect in the at-risk subpopulation",
-       subtitle = prob,
+       subtitle = paste0("\n", prob, "\n\n", prob1),
        caption = caption) +
   scale_x_continuous(
     breaks = seq(-15, 15, 5)
