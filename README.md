@@ -1,13 +1,13 @@
-# ZIBGLMM for Meta-Analysis of Opioid-Related Respiratory Outcomes
+# ZIBGLMM for Meta-Analysis of Pulmonary Aspiration After Preprocedural Fasting
 
 ## Overview
 
-This repository implements a Zero-Inflated Bivariate Generalized Linear Mixed Model (ZIBGLMM) for meta-analysis of opioid-related respiratory outcomes, as described in:
+This repository implements a Zero-Inflated Bivariate Generalized Linear Mixed Model (ZIBGLMM) for meta-analysis of pulmonary aspiration after preprocedural fasting, as described in:
 
 > "ZIBGLMM: Zero-Inflated Bivariate Generalized Linear Mixed Model for Meta-Analysis with Double-Zero-Event Studies"  
 > [DOI: 10.1017/rsm.2024.4](https://www.cambridge.org/core/journals/research-synthesis-methods/article/zibglmm-zeroinflated-bivariate-generalized-linear-mixed-model-for-metaanalysis-with-doublezeroevent-studies/FCDCE1CC52319606DE9294F776411A3E)
 
-The model is adapted to include meta-regression for subgroup analysis, applied to a dataset of 84 studies on respiratory outcomes associated with opioid use. The repository contains data, Stan models, and Quarto files with R code for prior predictive checks, model diagnostics, posterior analysis, and visualization, handling double-zero-event studies (where both treatment and control groups report zero events).
+We applied to a dataset of 9 studies. The repository contains data, Stan models, and Quarto files with R code for prior predictive checks, model diagnostics, posterior analysis, and visualization, handling double-zero-event studies (where both treatment and control groups report zero events).
 
 ## Repository Structure
 
@@ -20,14 +20,7 @@ zibglmm_opiods_respiratory/
 │   ├── 01_prior_predictive.qmd           # Prior predictive checks for overall model
 │   ├── 02_posterior_diagnostics_ppc.qmd  # Diagnostics and posterior predictive checks for overall model
 │   ├── 03_posterior_model_comparison.qmd # Comparison of overall models with different priors
-│   ├── 04_results.qmd                    # Summary figures for overall and subgroups models
-│   └── subgroups/
-│       ├── 01_prior_predictive.qmd       # Prior predictive checks for subgroups model
-│       ├── 02_posterior_diagnostics_ppc.qmd # Diagnostics and posterior predictive checks for subgroups model
-│       ├── 03_posterior_model_comparison.qmd # Comparison of subgroups models with different priors
-│
-├── data/
-│   └── raw_data.xlsx                     # Dataset with 84 studies
+│   └── 04_results.qmd                    # Summary figures for overall model
 │
 ├── models/
 │   ├── stan/
@@ -35,10 +28,6 @@ zibglmm_opiods_respiratory/
 │   │   ├── zibglmm_model2.stan           # Overall ZIBGLMM model (prior set 2)
 │   │   ├── zibglmm_prior_model1.stan     # Prior predictive check for model 1
 │   │   ├── zibglmm_prior_model2.stan     # Prior predictive check for model 2
-│   │   ├── zibglmm_subgroups_model1.stan # Subgroups ZIBGLMM model (prior set 1)
-│   │   ├── zibglmm_subgroups_model2.stan # Subgroups ZIBGLMM model (prior set 2)
-│   │   ├── zibglmm_subgroups_prior_model1.stan # Prior predictive check for subgroups model 1
-│   │   ├── zibglmm_subgroups_prior_model2.stan # Prior predictive check for subgroups model 2
 │   │   ├── original_zibglmm_model.stan # Original article model, for reference
 │   └── storage/
 │       └── [model files]                 # Files for loading fitted models (cmdstanr)
@@ -79,18 +68,11 @@ Install CmdStan: [cmdstanr documentation](https://mc-stan.org/cmdstanr/).
      quarto render analyses/04_results.qmd
      ```
 
-   - **Subgroups Model**:
-     ```bash
-     quarto render analyses/subgroups/01_prior_predictive.qmd
-     quarto render analyses/subgroups/02_posterior_diagnostics_ppc.qmd
-     quarto render analyses/subgroups/03_posterior_model_comparison.qmd
-     ```
-
    Alternatively, use RStudio’s "Render" button for each `.qmd` file.
 
 4. **View Results**:
    - Outputs (figures, tables, diagnostics) are saved in `analyses/` or its subfolders.
-   - `04_results.qmd` generates a summarizing figure comparing overall and subgroups models.
+   - `04_results.qmd` generates a summarizing figure of the overall model.
    - Fitted models in `models/storage/` can be loaded with `cmdstanr` for further analysis.
 
 ## Methodology
@@ -99,11 +81,6 @@ The ZIBGLMM models double-zero-event studies in meta-analysis, addressing excess
 - **Zero-Inflation**: A Bernoulli component models the probability of zero events due to structural zeros.
 - **Bivariate Structure**: Jointly models treatment and control outcomes, accounting for correlation.
 - **Mixed Effects**: Random effects capture study-level heterogeneity.
-- **Meta-Regression**: Subgroups models incorporate covariates to explore heterogeneity across subgroups.
-
-Two model variants are provided for both overall and subgroups analyses:
-- **Overall Models** (`zibglmm_model1.stan`, `zibglmm_model2.stan`): Estimate overall opioid effects, differing in prior specifications.
-- **Subgroups Models** (`zibglmm_subgroups_model1.stan`, `zibglmm_subgroups_model2.stan`): Include meta-regression covariates for subgroup effects.
 
 Bayesian inference is implemented using Stan via `cmdstanr`, with prior predictive checks, posterior diagnostics, and model comparisons to ensure robustness.
 
@@ -139,9 +116,8 @@ These changes enhance computational efficiency, prior robustness, and output int
 
 The analysis produces:
 - Posterior estimates of opioid effects on respiratory outcomes.
-- Subgroup effects via meta-regression.
 - Diagnostic plots (e.g., posterior predictive checks, trace plots).
-- A summarizing figure (`04_results.qmd`) comparing overall and subgroup results.
+- Summarizing figures (`04_results.qmd`) focusing on the marginal risk ratio and pi.
 
 Outputs are stored in `analyses/`. Fitted models in `models/storage/` can be reused with `cmdstanr`.
 
