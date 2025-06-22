@@ -7,7 +7,7 @@ This repository implements a Zero-Inflated Bivariate Generalized Linear Mixed Mo
 > "ZIBGLMM: Zero-Inflated Bivariate Generalized Linear Mixed Model for Meta-Analysis with Double-Zero-Event Studies"  
 > [DOI: 10.1017/rsm.2024.4](https://www.cambridge.org/core/journals/research-synthesis-methods/article/zibglmm-zeroinflated-bivariate-generalized-linear-mixed-model-for-metaanalysis-with-doublezeroevent-studies/FCDCE1CC52319606DE9294F776411A3E)
 
-We applied to a dataset of 9 studies. The repository contains data, Stan models, and Quarto files with R code for prior predictive checks, model diagnostics, posterior analysis, and visualization, handling double-zero-event studies (where both treatment and control groups report zero events).
+We applied to a dataset of 9 studies (DOI: 10.1016/j.surg.2025.109483). The repository contains data, Stan models, and Quarto files with R code for prior predictive checks, model diagnostics, posterior analysis, and visualization, handling double-zero-event studies (where both treatment and control groups report zero events).
 
 ## Repository Structure
 
