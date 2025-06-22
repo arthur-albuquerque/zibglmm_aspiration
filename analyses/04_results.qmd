@@ -1,0 +1,160 @@
+---
+title: "Results"
+format:
+  html:
+    embed-resources: true
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+pacman::p_load(MetaStan, cmdstanr, dplyr, tidyr, rio, here, data.table,
+               posterior, ggdist, ggplot2, bayesplot, MetBrewer)
+
+# Set Stan options
+options(mc.cores = parallel::detectCores())
+```
+
+# Data
+
+
+```{r}
+dat = data.frame(
+  Study = c("Gonik (2016)", "Nossaman (2017)", "LaSala (2020)", "Zhang (2020)", 
+            "Bassa (2021)", "Witt (2021)", "Zubaidaiah (2021)", "Bode (2022)", 
+            "Sharma (2022)"),
+  Experimental_Events = c(0, 0, 0, 0, 2, 0, 0, 0, 2),
+  Experimental_Total = c(12, 168, 20, 34, 13, 500, 30, 100, 100),
+  Control_Events = c(0, 0, 0, 0, 4, 0, 0, 0, 3),
+  Control_Total = c(12, 224, 80, 30, 51, 502, 30, 101, 98)
+)
+
+setnames(dat, old=c("Experimental_Events","Control_Events"), new=c("r2", "r1"))
+setnames(dat, old=c("Experimental_Total","Control_Total"), new=c("n2", "n1"))
+
+J <- nrow(dat)  # Number of studies (84)
+y <- as.matrix(dat[, c("r1", "r2")])  # Events: control (r1), treatment (r2)
+sample <- as.matrix(dat[, c("n1", "n2")])  # Sample sizes: control (n1), treatment (n2)
+zero <- c(0, 0)  # Zero vector for random effects mean
+
+# Create the Stan data list
+stan_data <- list(
+  J = J,
+  zero = zero,
+  y = y,
+  sample = sample
+)
+```
+
+# Model
+
+```{r}
+zibglmm1 <- cmdstan_model(here("models/stan/zibglmm_model1.stan"))
+
+
+csv_files <- list.files(here("models/storage"),
+                        pattern = "^zibglmm_model1.*\\.csv$",
+                        full.names = TRUE)
+
+if (length(csv_files) > 0 && all(file.exists(csv_files))) {
+  # Load the fit from CSV files
+  fit1 <- cmdstanr::as_cmdstan_fit(csv_files)
+  
+} else {
+  # Fit the model if no CSV files are found
+  fit1 <- zibglmm1$sample(
+    data = stan_data,
+    chains = 4,
+    parallel_chains = 4,
+    iter_warmup = 2000,
+    iter_sampling = 2000,
+    adapt_delta = 0.99,  
+    max_treedepth = 15,  
+    seed = 123,
+    refresh = 0
+)
+  
+  # Save CSV files to persistent directory
+  fit1$save_output_files(dir = "models/storage")
+}
+
+```
+
+# Results
+
+```{r}
+draws <- fit1$draws(variables = c("pi","RR"),
+                    format = "df")
+```
+
+
+```{r}
+tibble(
+  `Overall` = draws$RR
+)  |> 
+  ggplot() +
+  aes(x = Overall) +
+  stat_halfeye(.width = 0.95,
+               point_interval = median_hdci,
+               fill = "firebrick")  +
+  
+  labs(x = "Marginal Risk Ratio",
+       y = " ",
+       title = "Overall Treatment Effect in the at-risk subpopulation") +
+  scale_x_continuous(
+    breaks = seq(0, 5, 1)
+  ) +
+  coord_cartesian(x = c(0, 5)) +
+  theme(
+    legend.position = "none",
+    plot.title.position = 'plot',
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_blank(),
+    axis.title.x = element_text(size = 12),
+    panel.background = element_blank(),
+    panel.grid.major.x = element_line(color = "gray80", linewidth = 0.3)
+  )
+
+
+# ggsave(width = 7,
+#        height = 5,
+#         here("figures", "risk_ratio.pdf")) # File name
+
+```
+
+```{r}
+tibble(
+  `Overall` = draws$pi
+)  |> 
+  ggplot() +
+  aes(x = Overall) +
+  stat_halfeye(.width = 0.95,
+               point_interval = median_hdci,
+               fill = "forestgreen")  +
+  
+  labs(x = "Pi",
+       y = " ",
+       title = "Probability that a given subject belongs to the low-risk subpopulation") +
+  scale_x_continuous(
+    breaks = seq(0, 1, 0.1)
+  ) +
+  coord_cartesian(x = c(0, 1)) +
+  theme(
+    legend.position = "none",
+    plot.title.position = 'plot',
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_blank(),
+    axis.title.x = element_text(size = 12),
+    panel.background = element_blank(),
+    panel.grid.major.x = element_line(color = "gray80", linewidth = 0.3)
+  )
+
+# ggsave(width = 7,
+#        height = 5,
+#         here("figures", "pi.pdf")) # File name
+```
+
