@@ -83,7 +83,7 @@ if (length(csv_files) > 0 && all(file.exists(csv_files))) {
 # Results
 
 ```{r}
-draws <- fit1$draws(variables = c("pi","RR"),
+draws <- fit1$draws(variables = c("pi","RR", "p_control", "RD"),
                     format = "df")
 ```
 
@@ -121,6 +121,59 @@ tibble(
 # ggsave(width = 7,
 #        height = 5,
 #         here("figures", "risk_ratio.pdf")) # File name
+
+```
+
+
+```{r}
+control_risk =
+  data.frame(
+    overall = draws$p_control
+  ) |> 
+  median_hdi(overall) |> 
+  mutate(text = paste0(round(overall*100,1), "% [",
+                       round(.lower*100,1), ", ",
+                       round(.upper*100,1), "%]"))
+
+prob = paste0("Pr(RD > 0) = ",mean(draws$RD > 0) |> round(2) * 100, "%")
+
+
+caption = paste0("Estimated Risk in Control Group:\n ", control_risk$text)
+
+tibble(
+  `Overall` = draws$RD
+)  |> 
+  ggplot() +
+  aes(x = Overall*100) +
+  stat_halfeye(.width = 0.95,
+               point_interval = median_hdci,
+               fill = "skyblue")  +
+  
+  labs(x = "Marginal Absolute Risk Difference (%)",
+       y = " ",
+       title = "Overall Treatment Effect in the at-risk subpopulation",
+       subtitle = prob,
+       caption = caption) +
+  scale_x_continuous(
+    breaks = seq(-15, 15, 5)
+  ) +
+  coord_cartesian(x = c(-15, 15)) +
+  theme(
+    legend.position = "none",
+    plot.title.position = 'plot',
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_blank(),
+    axis.title.x = element_text(size = 12),
+    panel.background = element_blank(),
+    panel.grid.major.x = element_line(color = "gray80", linewidth = 0.3)
+  )
+
+
+# ggsave(width = 7,
+#        height = 5,
+#         here("figures", "risk_difference.pdf")) # File name
 
 ```
 
